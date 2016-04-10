@@ -2,7 +2,7 @@
     "name": "steelice/TelegramBot",
     "autoload": {
         "psr-0" : {
-            "RulezDev\\TelegramBot" : "src"
+            "RulezDev" : "src"
         }
     }
 }
