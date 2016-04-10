@@ -1,9 +1,11 @@
 <?php
 
+namespace RulezDev\TelegramBot;
+
 /**
 * Работа с BotAPI телеграма
 */
-class rMyTelegramBotAPI
+class TelegramBotAPI
 {
 	protected $telegramURL = 'https://api.telegram.org/bot';
 	protected $baseURL;
