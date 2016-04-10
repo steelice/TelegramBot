@@ -3,7 +3,7 @@
 /**
 * Работа с BotAPI телеграма
 */
-class TelegramBotAPI
+class rMyTelegramBotAPI
 {
 	protected $telegramURL = 'https://api.telegram.org/bot';
 	protected $baseURL;
@@ -41,8 +41,19 @@ class TelegramBotAPI
 		curl_setopt($ch, CURLOPT_POST, 1);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4 ); 
 
+		$time = microtime(true);
 		$server_output = curl_exec($ch);
+		$end = microtime(true) - $time;
+		if($end > 1)
+		{
+			$info = curl_getinfo($ch);
+			file_put_contents(VAR_PATH.'/logs/slow-curl.log', print_r($info, 1), FILE_APPEND);
+		}
+
+
+
 
 		curl_close ($ch);
 
@@ -89,9 +100,23 @@ class TelegramBotAPI
 	{
 		$params = ['chat_id' => $chat_id, 'text' => $text];
 		if($replyID !== NULL) $params['reply_to_message_id'] = intval($replyID);
-		if($replyMarkup !== NULL) $params['reply_markup'] = $replyMarkup;
+		if($replyMarkup !== NULL) $params['reply_markup'] = json_encode($replyMarkup);
 
 		return $this->callMethod('sendMessage', $params);
+	}
+
+	/**
+	 * Use this method to forward messages of any kind. 
+	 * @param  int $chat_id      Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+	 * @param  int $from_chat_id Unique identifier for the chat where the original message was sent (or channel username in the format @channelusername)
+	 * @param  int $message_id   Unique message identifier
+	 * @return array               On success, the sent Message is returned.
+	 */
+	public function forwardMessage($chat_id, $from_chat_id, $message_id)
+	{
+		$params = ['chat_id' => $chat_id, 'from_chat_id' => $from_chat_id, 'message_id' => $message_id];
+
+		return $this->callMethod('forwardMessage', $params);
 	}
 
 	/**
@@ -129,6 +154,22 @@ class TelegramBotAPI
 		if($replyMarkup !== NULL) $params['reply_markup'] = $replyMarkup;
 
 		return $this->callMethod('sendVoice', $params);
+	}
+
+	/**
+	 * Use this method to send .webp stickers.
+	 * @param  int $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+	 * @param  array|string $sticker Sticker to send. You can either pass a file_id as String to resend a sticker that is already on the Telegram servers, or upload a new sticker using multipart/form-data.
+	 * @param  int $replyID If the message is a reply, ID of the original message
+	 * @return Message          On success, the sent Message is returned.
+	 */
+	public function sendSticker($chat_id, $sticker, $replyID = NULL)
+	{
+		if(is_array($sticker)) $sticker = json_encode($sticker);
+		$params = ['chat_id' => $chat_id, 'sticker' => $sticker];
+		if($replyID !== NULL) $params['reply_to_message_id'] = intval($replyID);
+
+		return $this->callMethod('sendSticker', $params);
 	}
 
 
