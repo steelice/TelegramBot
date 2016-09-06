@@ -26,7 +26,7 @@ class MessageInterface
 
 	static public function create(array $message)
 	{
-		return new self($message);
+		return new static($message);
 	}
 
 	public function getType()
