@@ -12,9 +12,33 @@ class TelegramBotAPI
 
 	protected $token;
 
+	protected $logger = null;
+
 	public function __construct($token)
 	{
 		$this->setToken($token);
+	}
+
+	/**
+	 * Устанавливает функцию для записи лога
+	 * @param callable $logger функция для ведения логов
+	 */
+	public function setLogger($logger)
+	{
+		$this->logger = $logger;
+	}
+
+	/**
+	 * Записывает в лог с помощью установленного логгера
+	 * @param  string $text Текст лога
+	 * @return void       
+	 */
+	public function log($text)
+	{
+		if(!$this->logger || !is_callable($this->logger))
+			return false;
+
+		call_user_func($this->logger, $text);
 	}
 
 	/**
@@ -51,7 +75,7 @@ class TelegramBotAPI
 		if($end > 1)
 		{
 			$info = curl_getinfo($ch);
-			file_put_contents(VAR_PATH.'/logs/slow-curl.log', print_r($info, 1), FILE_APPEND);
+			$this->log('Slow curl: '.print_r($info, 1));
 		}
 
 
