@@ -59,4 +59,22 @@ class MessageInterface
 		return $this->Chat;
 	}
 
+	public function getID()
+	{
+		return $this->message_id;
+	}
+
+	public function getRaw()
+	{
+		return $this->rawData;
+	}
+
+	public function getText()
+	{
+		if(isset($this->rawData['text']))
+			return $this->rawData['text'];
+
+		return null;
+	}
+
 }

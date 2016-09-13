@@ -122,13 +122,27 @@ class TelegramBotAPI
 	 * @param  array|null $replyMarkup Additional interface options. A JSON-serialized object for a custom reply keyboard, instructions to hide keyboard or to force a reply from the user.
 	 * @return array                  On success, the sent Message is returned.
 	 */
-	public function sendMessage($chat_id, $text, $replyID = NULL, array $replyMarkup = NULL)
+	public function sendMessage($chat_id, $text, $replyID = NULL, array $replyMarkup = NULL, array $additionalParams = [])
 	{
 		$params = ['chat_id' => $chat_id, 'text' => $text];
 		if($replyID !== NULL) $params['reply_to_message_id'] = intval($replyID);
 		if($replyMarkup !== NULL) $params['reply_markup'] = json_encode($replyMarkup);
+		
+		if(!empty($additionalParams) && is_array($additionalParams)) 
+			$params = $params + $additionalParams;
 
 		return $this->callMethod('sendMessage', $params);
+	}
+
+	public function editMessageText($chat_id, $message_id, $text, array $replyMarkup = NULL, array $additionalParams = [])
+	{
+		$params = ['chat_id' => $chat_id, 'text' => $text, 'message_id' => $message_id];
+		if($replyMarkup !== NULL) $params['reply_markup'] = json_encode($replyMarkup);
+		
+		if(!empty($additionalParams) && is_array($additionalParams)) 
+			$params = $params + $additionalParams;
+
+		return $this->callMethod('editMessageText', $params);
 	}
 
 	/**

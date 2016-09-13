@@ -38,4 +38,14 @@ class Chat
 	{
 		return $this->id;
 	}
+
+	public function getType()
+	{
+		return $this->type;
+	}
+
+	public function isPrivate()
+	{
+		return $this->type == 'private';
+	}
 }
