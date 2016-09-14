@@ -3,7 +3,7 @@
 namespace RulezDev\TelegramBot;
 
 /**
-* Репрезентация объекта-чата
+* Репрезентация объекта-юзера
 */
 class User
 {
@@ -29,26 +29,46 @@ class User
 			$this->last_name = $data['last_name'];
 	}
 
+	/**
+	 * Возвращает ID юзера
+	 * @return int ID
+	 */
 	public function getID()
 	{
 		return $this->id;
 	}
 
+	/**
+	 * Возвращает @-юзернейм юзера
+	 * @return string 
+	 */
 	public function getUsername()
 	{
 		return $this->username;
 	}
 
+	/**
+	 * First Name
+	 * @return string 
+	 */
 	public function getFirstName()
 	{
 		return $this->first_name;
 	}
 
+	/**
+	 * Last Name
+	 * @return string 
+	 */
 	public function getLastName()
 	{
 		return $this->last_name;
 	}
 
+	/**
+	 * Last Name + First Name, trimmed spaces
+	 * @return string 
+	 */
 	public function getFullname()
 	{
 		return trim($this->first_name.' '.$this->last_name);

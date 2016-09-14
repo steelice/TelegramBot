@@ -134,6 +134,15 @@ class TelegramBotAPI
 		return $this->callMethod('sendMessage', $params);
 	}
 
+	/**
+	 * Use this method to edit message
+	 * @param  int     $chat_id          Chat ID
+	 * @param  int     $message_id       Message ID
+	 * @param  string     $text             Новый текст
+	 * @param  array|null $replyMarkup      Настройки клавиатуры
+	 * @param  array      $additionalParams Доп-параметры
+	 * @return string                       
+	 */
 	public function editMessageText($chat_id, $message_id, $text, array $replyMarkup = NULL, array $additionalParams = [])
 	{
 		$params = ['chat_id' => $chat_id, 'text' => $text, 'message_id' => $message_id];

@@ -29,6 +29,10 @@ class MessageInterface
 		return new static($message);
 	}
 
+	/**
+	 * Возвращает тип сообщения
+	 * @return string [description]
+	 */
 	public function getType()
 	{
 		return $this->type;
