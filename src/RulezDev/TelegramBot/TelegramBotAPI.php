@@ -180,6 +180,12 @@ class TelegramBotAPI
 	public function sendPhoto($chat_id, $photo, $caption = '', $replyID = NULL, $replyMarkup = NULL)
 	{
 		$params = ['chat_id' => $chat_id, 'photo' => '@'.$photo, 'caption' => trim($caption)];
+//		if(function_exists('curl_file_create'))
+//			$params['photo'] = curl_file_create($photo); // php 5.6+
+		if(version_compare(PHP_VERSION, '5.5') >= 0)
+		{
+		    $params['photo'] = new \CURLFile($photo);
+		}
 		if($replyID !== NULL) $params['reply_to_message_id'] = intval($replyID);
 		if($replyMarkup !== NULL) $params['reply_markup'] = $replyMarkup;
 
@@ -198,6 +204,8 @@ class TelegramBotAPI
 	public function sendVoice($chat_id, $voice, $duration = 0, $replyID = NULL, $replyMarkup = NULL)
 	{
 		$params = ['chat_id' => $chat_id, 'voice' => '@'.$voice];
+		if(function_exists('curl_file_create'))
+			$params['voice'] = curl_file_create($voice); // php 5.6+
 		if($duration) $params['duration'] = intval($duration);
 		if($replyID !== NULL) $params['reply_to_message_id'] = intval($replyID);
 		if($replyMarkup !== NULL) $params['reply_markup'] = $replyMarkup;
