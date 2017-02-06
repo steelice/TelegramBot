@@ -8,8 +8,16 @@ namespace RulezDev\TelegramBot;
 class TextMessage extends MessageInterface
 {
 	protected
-		$type = 'text',
-		$text;
+
+		$type = Message::TYPE_TEXT,
+        /**
+         * @var string
+         */
+		$text,
+        /**
+         * @var Command
+         */
+	    $command = null;
 
 
 	public function parse()
@@ -17,6 +25,7 @@ class TextMessage extends MessageInterface
 		parent::parse();
 
 		$this->text = trim($this->rawData['text']);
+		$this->command = Command::create($this->rawData);
 	}
 	
 	/**
@@ -26,5 +35,13 @@ class TextMessage extends MessageInterface
 	public function getText()
 	{
 		return $this->text;
+	}
+
+    /**
+     * @return Command
+     */
+    public function getCommand()
+    {
+        return $this->command;
 	}
 }

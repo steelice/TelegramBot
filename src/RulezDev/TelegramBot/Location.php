@@ -15,8 +15,8 @@ class Location extends MessageInterface
 	protected function __construct(array $message)
 	{
 		parent::__construct($message);
-		$this->lat = $message['location']['latitude'];
-		$this->lng = $message['location']['longitude'];
+		$this->lat = $this->rawData['location']['latitude'];
+		$this->lng = $this->rawData['location']['longitude'];
 	}
 
 	public function getLat()

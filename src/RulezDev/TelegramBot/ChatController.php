@@ -33,6 +33,14 @@ class ChatController
 		return $this;
 	}
 
+	/**
+	 * Ответить в текущий чат
+	 * @param  string     $text             текст на отправку
+	 * @param  int     $reply_to         ID сообщения, на который ответ
+	 * @param  array|null $reply_markup     Массив с настройками клавиатуры для ответа
+	 * @param  array      $additionalParams Дополнительные параметры
+	 * @return TextMessage  Отправленое сообщение
+	 */
 	public function say($text, $reply_to = null, array $reply_markup = null, array $additionalParams = [])
 	{
 		if($this->parse_mode && empty($additionalParams['parse_mode']))
@@ -44,6 +52,15 @@ class ChatController
 		if(empty($msg['ok'])) throw new \Exception("Error Processing Request: ".print_r($msg, true));
 		
 		return TextMessage::create($msg['result']);
+	}
+
+	/**
+	 * Отправляет команду «печатаю» в текущий чат
+	 * @return void 
+	 */
+	public function startTyping()
+	{
+		$this->api->sendChatAction($this->msg->getChat()->getID(), 'typing');
 	}
 
 	public function getAPI()

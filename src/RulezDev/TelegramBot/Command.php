@@ -16,19 +16,19 @@ class Command extends TextMessage
 	protected function __construct(array $message)
 	{
 		parent::__construct($message);
-		$this->command = $message['rulezdev:custom']['command'];
-		$this->to = $message['rulezdev:custom']['to'];
-		$this->arguments = $message['rulezdev:custom']['arguments'];
+		$this->command = $this->rawData['rulezdev:custom']['command'];
+		$this->to = $this->rawData['rulezdev:custom']['to'];
+		$this->arguments = $this->rawData['rulezdev:custom']['arguments'];
 	}
 
 	static public function create(array $message)
 	{
-		if(empty($message['text'])) return false;
-		if(!preg_match('~^/([a-z0-9_]+)(@[a-z0-9_]+)?([\\s#:.]+(.*))?$~i', $message['text'], $match))
+		if(empty($message['message']['text'])) return false;
+		if(!preg_match('~^/([a-z0-9_]+)(@[a-z0-9_]+)?([\\s#:.]+(.*))?$~i', $message['message']['text'], $match))
 			return false;
 
 
-		$message['rulezdev:custom'] = [
+		$message['message']['rulezdev:custom'] = [
 			'command' => trim(strtolower($match[1])),
 			'to' => empty($match[2]) ? '' : self::simpleBotName($match[2]),
 			'arguments' => empty($match[4]) ? '' : trim($match[4])

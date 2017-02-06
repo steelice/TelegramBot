@@ -4,21 +4,28 @@ namespace RulezDev\TelegramBot;
 
 class Message
 {
+
+    const TYPE_TEXT = 'text';
+
 	/**
 	 * Фабрикует класс, обрабатывающий сообщение
 	 * @param  array $m Сообщение на вход
-	 * @return object    Класс, ответственный за данный тип сообщения
+	 * @return MessageInterface    Класс, ответственный за данный тип сообщения
 	 */
 	static public function parseInput($m)
 	{
+        if(!is_array($m) && is_string($m)) {
+            $m = @json_decode($m, true);
+        }
 
-		if(empty($m['message_id'])) return NULL;
-		if(!empty($m['text'])) {
-			$command = Command::create($m);
-			return $command ? $command : TextMessage::create($m);
-		}elseif(!empty($m['location']))
+		if(empty($m['message'])) return NULL;
+		if(!empty($m['message']['text'])) {
+			return  TextMessage::create($m);
+		}elseif(!empty($m['message']['location']))
 		{
 			return Location::create($m);
 		}
+
+		return null;
 	}
 }

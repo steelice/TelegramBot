@@ -36,15 +36,16 @@ class TelegramBotAPI
 	public function log($text)
 	{
 		if(!$this->logger || !is_callable($this->logger))
-			return false;
+			return;
 
 		call_user_func($this->logger, $text);
 	}
 
-	/**
-	 * Устанавливает secret token для коммуникаций
-	 * @param string $token token
-	 */
+    /**
+     * Устанавливает secret token для коммуникаций
+     * @param string $token token
+     * @return $this
+     */
 	public function setToken($token)
 	{
 		$this->token = trim($token);
@@ -52,22 +53,23 @@ class TelegramBotAPI
 		return $this;
 	}
 
-	/**
-	 * Отправляет POST-запрос на сервер телеграма
-	 * @param  string $method метод
-	 * @param  array  $params данные
-	 * @return array         Ответ сервера, превращенный в массив
-	 */
+    /**
+     * Отправляет POST-запрос на сервер телеграма
+     * @param  string $method метод
+     * @param  array $params данные
+     * @return array Ответ сервера, превращенный в массив
+     * @throws \Exception
+     */
 	protected function callMethod($method, array $params = [])
 	{
-		if(!$method = trim($method)) throw new Exception('Method not specified', 1);
+		if(!$method = trim($method)) throw new \Exception('Method not specified', 1);
 		$ch = curl_init();
 
 		curl_setopt($ch, CURLOPT_URL, $this->baseURL.$method);
 		curl_setopt($ch, CURLOPT_POST, 1);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4 ); 
+		curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4 );
 
 		$time = microtime(true);
 		$server_output = curl_exec($ch);
@@ -78,12 +80,14 @@ class TelegramBotAPI
 			$this->log('Slow curl: '.print_r($info, 1));
 		}
 
-
+		if($error = curl_error($ch)) {
+            throw new \Exception($error);
+        }
 
 
 		curl_close ($ch);
 
-		if(!$server_output) return false;
+		if(!$server_output) return null;
 
 		return json_decode(@$server_output, 1);
 	}
@@ -105,7 +109,7 @@ class TelegramBotAPI
 	 * @param  int|null $limit  Limits the number of updates to be retrieved. Values between 1—100 are accepted. Defaults to 100
 	 * @return array           An Array of Update objects is returned
 	 */
-	public function getUpdates(int $offset = NULL, int $limit = NULL)
+	public function getUpdates($offset = NULL, $limit = NULL)
 	{
 		$params = [];
 		if($offset !== NULL) $params['offset'] = intval($offset);
@@ -120,6 +124,7 @@ class TelegramBotAPI
 	 * @param  string     $text        Text of the message to be sent
 	 * @param  int|null   $replyID     If the message is a reply, ID of the original message
 	 * @param  array|null $replyMarkup Additional interface options. A JSON-serialized object for a custom reply keyboard, instructions to hide keyboard or to force a reply from the user.
+     * @param  array    $additionalParams Additional params
 	 * @return array                  On success, the sent Message is returned.
 	 */
 	public function sendMessage($chat_id, $text, $replyID = NULL, array $replyMarkup = NULL, array $additionalParams = [])
@@ -132,6 +137,29 @@ class TelegramBotAPI
 			$params = $params + $additionalParams;
 
 		return $this->callMethod('sendMessage', $params);
+	}
+
+    /**
+     * Use this method to send point on the map
+     *
+     * @param string $chat_id
+     * @param float $lat
+     * @param float $lng
+     * @param null|string $replyID
+     * @param array|NULL $replyMarkup
+     * @param array $additionalParams
+     * @return array
+     */
+	public function sendLocation($chat_id, $lat, $lng, $replyID = NULL, array $replyMarkup = NULL, array $additionalParams = [])
+	{
+		$params = ['chat_id' => $chat_id, 'latitude' => $lat, 'longitude' => $lng];
+		if($replyID !== NULL) $params['reply_to_message_id'] = intval($replyID);
+		if($replyMarkup !== NULL) $params['reply_markup'] = json_encode($replyMarkup);
+		
+		if(!empty($additionalParams) && is_array($additionalParams)) 
+			$params = $params + $additionalParams;
+
+		return $this->callMethod('sendLocation', $params);
 	}
 
 	/**
@@ -193,10 +221,35 @@ class TelegramBotAPI
 	}
 
 	/**
+	 * Use this method to send videos.
+	 * @param  int $chat_id     Unique identifier for the message recipient — User or GroupChat id
+	 * @param  string $video       local file path or URL
+	 * @param  string $caption     Video caption
+	 * @param  int $replyID     If the message is a reply, ID of the original message
+	 * @param  array $replyMarkup Additional interface options.
+	 * @return array              On success, the sent Message is returned.
+	 */
+	public function sendVideo($chat_id, $video, $caption = '', $replyID = NULL, $replyMarkup = NULL)
+	{
+		$params = ['chat_id' => $chat_id, 'video' => '@'.$video, 'caption' => trim($caption)];
+
+		if(preg_match('~^https?://~i', $video)){
+			$params['video'] = $video;
+		}else if(version_compare(PHP_VERSION, '5.5') >= 0)
+		{
+		    $params['video'] = new \CURLFile($video);
+		}
+		if($replyID !== NULL) $params['reply_to_message_id'] = intval($replyID);
+		if($replyMarkup !== NULL) $params['reply_markup'] = $replyMarkup;
+
+		return $this->callMethod('sendVideo', $params);
+	}
+
+	/**
 	 * Use this method to send voices.
 	 * @param  int $chat_id     Unique identifier for the message recipient — User or GroupChat id
 	 * @param  string $voice       local file path
-	 * @param  string $duration     Duration in seconds
+	 * @param  int $duration     Duration in seconds
 	 * @param  int $replyID     If the message is a reply, ID of the original message
 	 * @param  array $replyMarkup Additional interface options.
 	 * @return array              On success, the sent Message is returned.
@@ -218,7 +271,7 @@ class TelegramBotAPI
 	 * @param  int $chat_id Unique identifier for the target chat or username of the target channel (in the format @channelusername)
 	 * @param  array|string $sticker Sticker to send. You can either pass a file_id as String to resend a sticker that is already on the Telegram servers, or upload a new sticker using multipart/form-data.
 	 * @param  int $replyID If the message is a reply, ID of the original message
-	 * @return Message          On success, the sent Message is returned.
+	 * @return array          On success, the sent Message is returned.
 	 */
 	public function sendSticker($chat_id, $sticker, $replyID = NULL)
 	{
@@ -230,24 +283,43 @@ class TelegramBotAPI
 	}
 
 
-	/**
-	 * Use this method to specify a url and receive incoming updates via an outgoing webhook. 
-	 * @param string $url HTTPS url to send updates to. Use an empty string to remove webhook integration
-	 */
-	public function setWebhook($url)
+    /**
+     * Use this method to specify a url and receive incoming updates via an outgoing webhook.
+     * @param string $url HTTPS url to send updates to. Use an empty string to remove webhook integration
+     * @param string $cert Certificate file
+     * @return WebhookResult
+     */
+	public function setWebhook($url, $cert = null)
 	{
-		return $this->callMethod('setWebhook', array('url' => trim($url)));
+	    $config = ['url' => trim($url)];
+	    if($cert) {
+	        $config['certificate'] = '@'.$cert;
+            if(version_compare(PHP_VERSION, '5.5') >= 0) {
+                $config['certificate'] = new \CURLFile($cert);
+            }
+        }
+		return new WebhookResult($this->callMethod('setWebhook', $config)) ;
+	}
+
+    public function getWebhookInfo()
+    {
+        $result = $this->callMethod('getWebhookInfo');
+        if(!empty($result['result']))
+            return new WebhookInfo($result['result']);
+        else
+            return null;
 	}
 
 	/**
 	 * Use this method when you need to tell the user that something is happening on the bot's side.
 	 * @param  int $chat_id Unique identifier for the message recipient — User or GroupChat id
 	 * @param  string $action  Type of action to broadcast. Choose one, depending on what the user is about to receive: typing for text messages, upload_photo for photos, record_video or upload_video for videos, record_audio or upload_audio for audio files, upload_document for general files, find_location for location data.
-	 * @return void          
+	 * @return array
 	 */
 	public function sendChatAction($chat_id, $action)
 	{
 		return $this->callMethod('sendChatAction', array('chat_id' => $chat_id, 'action' => trim($action)));
 	}
+
 
 }

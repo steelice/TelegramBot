@@ -10,6 +10,7 @@ class MessageInterface
 {
 	protected
 		$message_id = 0,
+		$update_id = 0,
 		$rawData = [],
 		$type = 'unknown',
 		$Chat = NULL,
@@ -18,7 +19,9 @@ class MessageInterface
 
 	protected function __construct(array $message)
 	{
-		$this->rawData = $message;
+	    if (empty($message['message'])) throw new \Exception('Wrong message');
+		$this->rawData = $message['message'];
+		$this->update_id = $message['update_id'];
 		
 
 		$this->parse();
